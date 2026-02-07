@@ -2,81 +2,61 @@ const express = require('express');
 const fs = require('fs');
 const cors = require('cors');
 const path = require('path');
-const app = express();
 
+const app = express();
 app.use(cors());
 app.use(express.json());
 app.use(express.static('public'));
 
-const filePath = path.join(__dirname, 'films.json');
+const filmsPath = path.join(__dirname, 'films.json');
+const statePath = path.join(__dirname, 'state.json');
 
-// Filmleri getir
+function readJSON(file, def) {
+  if (!fs.existsSync(file)) return def;
+  return JSON.parse(fs.readFileSync(file, 'utf-8'));
+}
+
+function writeJSON(file, data) {
+  fs.writeFileSync(file, JSON.stringify(data, null, 2));
+}
+
+// 🎬 Films
 app.get('/api/films', (req, res) => {
-  const data = readFilms();
-  res.json(data);
+  res.json(readJSON(filmsPath, []));
 });
 
-// Film ekle
 app.post('/api/films', (req, res) => {
-  const films = readFilms();
-  const newFilm = { id: Date.now(), ...req.body };
-  films.push(newFilm);
-  writeFilms(films);
-  res.json(newFilm);
+  const films = readJSON(filmsPath, []);
+  const film = { id: Date.now(), ...req.body };
+  films.push(film);
+  writeJSON(filmsPath, films);
+  res.json(film);
 });
 
-// Film sil
-app.delete("/api/films/:id", (req, res) => {
-    const filmId = Number(req.params.id);
-    const films = readFilms();
-    const filteredFilms = films.filter(f => f.id !== filmId);
-    writeFilms(filteredFilms);
-    res.json({ success: true });
+app.delete('/api/films/:id', (req, res) => {
+  const films = readJSON(filmsPath, []).filter(f => f.id !== Number(req.params.id));
+  writeJSON(filmsPath, films);
+  res.json({ success: true });
 });
 
-function readFilms() {
-  if (!fs.existsSync(filePath)) return [];
-  const data = fs.readFileSync(filePath, 'utf-8');
-  return JSON.parse(data);
-}
+// 🧠 State
+app.get('/api/state', (req, res) => {
+  res.json(readJSON(statePath, { selectedFilmId: null, watchDate: null }));
+});
 
-function writeFilms(films) {
-  fs.writeFileSync(filePath, JSON.stringify(films, null, 2));
-}
+app.post('/api/select', (req, res) => {
+  const state = readJSON(statePath, { selectedFilmId: null, watchDate: null });
+  state.selectedFilmId = req.body.filmId;
+  writeJSON(statePath, state);
+  res.json({ success: true });
+});
+
+app.post('/api/date', (req, res) => {
+  const state = readJSON(statePath, { selectedFilmId: null, watchDate: null });
+  state.watchDate = req.body.date;
+  writeJSON(statePath, state);
+  res.json({ success: true });
+});
 
 const PORT = process.env.PORT || 3000;
-
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
-
-const STATE_FILE = path.join(__dirname, 'state.json');
-
-// State oku
-function readState() {
-  if (!fs.existsSync(STATE_FILE)) {
-    return { selectedFilmId: null, watchDate: null };
-  }
-  return JSON.parse(fs.readFileSync(STATE_FILE, 'utf-8'));
-}
-
-// State yaz
-function writeState(state) {
-  fs.writeFileSync(STATE_FILE, JSON.stringify(state, null, 2));
-}
-app.post('/api/select', (req, res) => {
-  const state = readState();
-  state.selectedFilmId = req.body.filmId;
-  writeState(state);
-  res.json({ success: true });
-});
-app.post('/api/date', (req, res) => {
-  const state = readState();
-  state.watchDate = req.body.date;
-  writeState(state);
-  res.json({ success: true });
-});
-app.get('/api/state', (req, res) => {
-  res.json(readState());
-});
-
+app.listen(PORT, () => console.log(`Server running on ${PORT}`));
