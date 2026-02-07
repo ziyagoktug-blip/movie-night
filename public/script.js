@@ -52,6 +52,15 @@ async function loadResult() {
     📅 ${state.watchDate || "Tarih belirlenmedi"}
   `;
   document.getElementById("final").classList.add("show");
+  document.getElementById("resetBtn").onclick = async () => {
+  await fetch('/api/reset', { method: 'POST' });
+
+  document.getElementById("final").classList.remove("show");
+  document.getElementById("container").style.display = "flex";
+
+  loadFilms();
+};
+
 }
 
 loadFilms();

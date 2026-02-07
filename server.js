@@ -60,3 +60,10 @@ app.post('/api/date', (req, res) => {
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server running on ${PORT}`));
+app.post('/api/reset', (req, res) => {
+  writeJSON(statePath, {
+    selectedFilmId: null,
+    watchDate: null
+  });
+  res.json({ success: true });
+});
