@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Panel</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<h1>🎬 Admin Panel</h1>
+
+<form id="addFilmForm">
+  <input type="text" name="title" placeholder="Film Adı" required><br>
+  <textarea name="plot" placeholder="Konu" required></textarea><br>
+  <input type="url" name="poster" placeholder="Poster URL" required><br>
+  <input type="url" name="trailer" placeholder="Fragman URL" required><br>
+  <button type="submit">Film Ekle</button>
+</form>
+
+<ul id="filmList"></ul>
+
+<script>
+async function loadFilms() {
+  const res = await fetch('/api/films');
+  const films = await res.json();
+  const list = document.getElementById('filmList');
+  list.innerHTML = '';
+  
+  films.forEach(f => {
+    const li = document.createElement('li');
+    li.innerHTML = `
+      ${f.title} 
+      <button onclick="deleteFilm(${f.id})">Sil</button>
+    `;
+    list.appendChild(li);
+  });
+}
+
+function deleteFilm(id) {
+    if (!confirm("Bu filmi silmek istediğine emin misin?")) return;
+
+    fetch(`/api/films/${id}`, {
+        method: "DELETE"
+    })
+    .then(res => res.json())
+    .then(() => {
+        loadFilms(); // listeyi yeniden yükle
+    });
+}
+
+document.getElementById('addFilmForm').onsubmit = async (e) => {
+  e.preventDefault();
+  const form = e.target;
+  const newFilm = {
+    title: form.title.value,
+    plot: form.plot.value,
+    poster: form.poster.value,
+    trailer: form.trailer.value
+  };
+  await fetch('/api/films', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify(newFilm)
+  });
+  form.reset();
+  loadFilms();
+};
+
+loadFilms();
+</script>
+</body>
+</html>
