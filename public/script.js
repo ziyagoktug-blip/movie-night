@@ -30,7 +30,7 @@ function openModal(id, film) {
 
   document.getElementById("selectBtn").onclick = () => {
     closeModal();
-    selectFilm(film);
+    selectFilm(id);
   };
   document.getElementById("trailerBtn").onclick = () => {
     window.open(film.trailer, "_blank");
@@ -43,9 +43,6 @@ function closeModal() {
   document.body.classList.remove("modal-open");
 }
 
-function selectFilm(film) {
-  alert(`${film.title} seçildi!`);
-}
 
 const modal = document.getElementById("modal");
 modal.addEventListener("click", (e) => { if(e.target===modal) closeModal(); });
