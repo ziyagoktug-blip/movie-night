@@ -8,7 +8,9 @@
 </head>
 <body>
 <h1>🎬 Admin Panel</h1>
-
+<h3>📅 İzleme Tarihi</h3>
+<input type="datetime-local" id="watchDate">
+<button onclick="saveDate()">Kaydet</button>
 <form id="addFilmForm">
   <input type="text" name="title" placeholder="Film Adı" required><br>
   <textarea name="plot" placeholder="Konu" required></textarea><br>
@@ -20,6 +22,15 @@
 <ul id="filmList"></ul>
 
 <script>
+async function saveDate() {
+  const date = document.getElementById('watchDate').value;
+  await fetch('/api/date', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ date })
+  });
+  alert("Tarih güncellendi 🎉");
+}
 async function loadFilms() {
   const res = await fetch('/api/films');
   const films = await res.json();
